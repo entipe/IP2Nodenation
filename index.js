@@ -1,17 +1,15 @@
+const dns = require('dns');
 const express = require('express');
-const requestIp = require('request-ip');
-const {getClientIp} = require("request-ip");
 const cors = require('cors');
 const dotenv = require("dotenv");
-const networkInterfaces = require('os').networkInterfaces;
-
+const geoip = require('@avindak/xgeoip');
 
 dotenv.config()
 
 const domainWhiteList = process.env.DOMAIN_WHITELIST.split(',');
 const app = express();
 
-app.use(requestIp.mw());
+app.set('trust proxy', true);
 app.use(cors({
   origin: function(origin, callback) {
     if(!origin || domainWhiteList.some('*')) return callback(null, true);
@@ -23,23 +21,16 @@ app.use(cors({
   }
 }));
 
-app.get('/ip2nation', (req, res) => {
-  const apiKey = req.query.apiKey;
-
-  const getLocalExternalIp = () => [].concat.apply([], Object.values(networkInterfaces()))
-    .filter(details => details.family === 'IPv4' && !details.internal)
-    .pop().address
-
-  const geoip = require('@avindak/xgeoip');
-
+app.get('/ip2nation', async(req, res) => {
   geoip.load_memory().then(_ => {
-    const ip = getClientIp(req);
+    const ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
     geoip.resolve(ip).then(r => {
-      res.send({country: r.country_code, ip, localIp: getLocalExternalIp()});
+      res.send({country: r.country_code, ip});
     }).catch(e => {
-      res.send({e, ip, localIp: getLocalExternalIp()});
+      res.send({e, ip});
     })
   });
+
 });
 
-app.listen(8000);
+app.listen(8000, '0.0.0.0');
