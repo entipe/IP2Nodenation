@@ -21,7 +21,7 @@ app.use(cors({
   }
 }));
 
-app.get('/api/ip2nation', (req, res) => {
+app.get('/ip2nation', (req, res) => {
   const apiKey = req.query.apiKey;
 
   const geoip = require('@avindak/xgeoip');
@@ -29,10 +29,10 @@ app.get('/api/ip2nation', (req, res) => {
   geoip.load_memory().then(_ => {
     geoip.resolve(getClientIp(req)).then(r => {
       res.send({country: r.country_code});
-    }).catch(e => {
+    }).catch(_ => {
       res.send({country: ''});
     })
   });
 });
 
-app.listen(8080);
+app.listen(8000);
