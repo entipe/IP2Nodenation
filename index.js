@@ -2,7 +2,9 @@ const express = require('express');
 const requestIp = require('request-ip');
 const {getClientIp} = require("request-ip");
 const cors = require('cors');
-const dotenv = require("dotenv")
+const dotenv = require("dotenv");
+const networkInterfaces = require('os').networkInterfaces;
+
 
 dotenv.config()
 
@@ -24,13 +26,18 @@ app.use(cors({
 app.get('/ip2nation', (req, res) => {
   const apiKey = req.query.apiKey;
 
+  const getLocalExternalIp = () => [].concat.apply([], Object.values(networkInterfaces()))
+    .filter(details => details.family === 'IPv4' && !details.internal)
+    .pop().address
+
   const geoip = require('@avindak/xgeoip');
 
   geoip.load_memory().then(_ => {
-    geoip.resolve(getClientIp(req)).then(r => {
-      res.send({country: r.country_code});
+    const ip = getClientIp(req);
+    geoip.resolve(ip).then(r => {
+      res.send({country: r.country_code, ip, localIp: getLocalExternalIp()});
     }).catch(e => {
-      res.send({e});
+      res.send({e, ip, localIp: getLocalExternalIp()});
     })
   });
 });

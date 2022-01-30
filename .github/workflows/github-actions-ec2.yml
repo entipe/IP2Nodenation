@@ -32,6 +32,7 @@ jobs:
             cd ip2nodenation
             pwd
             pm2 stop 0
+            pm2 stop 1
             npm i
             pm2 start index.js
             
