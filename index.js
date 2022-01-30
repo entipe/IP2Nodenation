@@ -29,8 +29,8 @@ app.get('/ip2nation', (req, res) => {
   geoip.load_memory().then(_ => {
     geoip.resolve(getClientIp(req)).then(r => {
       res.send({country: r.country_code});
-    }).catch(_ => {
-      res.send({country: ''});
+    }).catch(e => {
+      res.send({e});
     })
   });
 });
