@@ -1,4 +1,7 @@
-const dns = require('dns');
+if (typeof(PhusionPassenger) !== 'undefined') {
+  PhusionPassenger.configure({ autoInstall: false });
+}
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require("dotenv");
@@ -33,4 +36,8 @@ app.get('/ip2nation', async(req, res) => {
 
 });
 
-app.listen(8000, '0.0.0.0');
+if (typeof(PhusionPassenger) !== 'undefined') {
+  app.listen('passenger');
+} else {
+  app.listen(3000);
+}
