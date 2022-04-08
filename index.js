@@ -24,6 +24,13 @@ app.use(cors({
   }
 }));
 
+app.get('/', function(req, res) {
+  const body = 'Hello World';
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Content-Length', body.length);
+  res.end(body);
+});
+
 app.get('/ip2nation', async(req, res) => {
   geoip.load_memory().then(_ => {
     const ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
