@@ -1,15 +1,18 @@
+if (typeof(PhusionPassenger) !== 'undefined') {
+  PhusionPassenger.configure({ autoInstall: false });
+}
+
 const express = require('express');
-const requestIp = require('request-ip');
-const {getClientIp} = require("request-ip");
 const cors = require('cors');
-const dotenv = require("dotenv")
+const dotenv = require("dotenv");
+const geoip = require('@avindak/xgeoip');
 
 dotenv.config()
 
 const domainWhiteList = process.env.DOMAIN_WHITELIST.split(',');
 const app = express();
 
-app.use(requestIp.mw());
+app.set('trust proxy', true);
 app.use(cors({
   origin: function(origin, callback) {
     if(!origin || domainWhiteList.some('*')) return callback(null, true);
@@ -21,18 +24,27 @@ app.use(cors({
   }
 }));
 
-app.get('/api/ip2nation', (req, res) => {
-  const apiKey = req.query.apiKey;
-
-  const geoip = require('@avindak/xgeoip');
-
-  geoip.load_memory().then(_ => {
-    geoip.resolve(getClientIp(req)).then(r => {
-      res.send({country: r.country_code});
-    }).catch(e => {
-      res.send({country: ''});
-    })
-  });
+app.get('/', function(req, res) {
+  const body = 'Hello World';
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Content-Length', body.length);
+  res.end(body);
 });
 
-app.listen(8080);
+app.get('/ip2nation', async(req, res) => {
+  geoip.load_memory().then(_ => {
+    const ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
+    geoip.resolve(ip).then(r => {
+      res.send({country: r.country_code, ip});
+    }).catch(e => {
+      res.send({e, ip});
+    })
+  });
+
+});
+
+if (typeof(PhusionPassenger) !== 'undefined') {
+  app.listen('passenger');
+} else {
+  app.listen(3000);
+}

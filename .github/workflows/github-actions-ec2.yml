@@ -1,0 +1,29 @@
+# Trigger deployment only on push to master branch
+name: Build and Deploy
+on:
+  push:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the files
+        uses: actions/checkout@v2
+
+      - name: Deploy to Server
+        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERRNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_PATH }}
+          exclude: |
+            **/dist/**
+            **/node_modules/**
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.idea/**
+            .gitignore
